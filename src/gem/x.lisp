@@ -1696,13 +1696,10 @@ this display."
               ;; The default font cannot be loaded, now just attempt loading ANY font
               (t
                (format t "WARNING: Default font could not be loaded~~%")
-               (format t "   ****   Resorting to loading any available xserver fonts")
-               (let ((xfont (xlib:open-font
-                             display
-                             (first (xlib:list-font-names display "*")))))
-		         (s-value font-from-file :display-xfont-plist
-			              (cons display (cons xfont dx-plist)))
-		         xfont))))))))
+               (format t "   ****   Resorting to loading any available xserver font")
+               (xlib:open-font
+                display
+                (first (xlib:list-font-names display "*"))))))))))
 
 
 ;;; Sets the Cut buffer for X.  Note that this does NOT do a select, and

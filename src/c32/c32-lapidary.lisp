@@ -18,7 +18,7 @@
 (defun c32-ok-function ()
   ;; allow no windows to be selected by the obj-find interactor
   (s-value (g-value c32::ask-object :obj-find) :window nil)
-  (setf lapidary-p nil)
+  (setf *lapidary-p* nil)
   (dolist (win *All-windows*)
     (if (schema-p win)
       (s-value win :visible nil)))
@@ -29,8 +29,8 @@
 
 (defun lapidary-QuitFunc (gadget sel)
   (declare (ignore gadget sel))
-  (declare (special lapidary-p))
-  (if lapidary-p
+  (declare (special *lapidary-p*))
+  (if *lapidary-p*
       (c32-ok-function)
       (progn
 	(do-stop)
@@ -158,8 +158,8 @@
 		       "should be a parameter, please edit the "
 		       "formula and use either 'Insert Ref From Spread...' "
 		       "or 'Insert Ref from Mouse' to insert the reference. "
-		       "Do you want to edit the formula?"
-		  expr))
+		       "Do you want to edit the formula?")
+		  expr)
 	 ;; else the expr is not a view-object, so return nil
 	 nil)))))
 
