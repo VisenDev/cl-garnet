@@ -1661,33 +1661,48 @@ this display."
         (display (the-display root-window)))
     (when *x11-server-available*
       (or (getf dx-plist display)
-	  (let ((font-path (fix-font-path
-			    (g-value font-from-file :font-path)))
-		(font-name (g-value font-from-file :font-name)))
-	    (when font-path
-	      (let ((xfont-path (mapcar #'remove-null-char
-					(xlib:font-path display))))
-              ;;; Add the font-path to the font-path, if necessary
-		(unless (member font-path xfont-path :test #'string=)
-		  (setf (xlib:font-path display)
-			(cons font-path xfont-path))
-                ;;; Now make sure it's there!
-		  (unless (member font-path (xlib:font-path display)
-				  :test #'string=)
-		    (format t "WARNING: X did not add ~A to font-path!!~%"
-			    font-path)))))
-          ;;; Open the font only if it's on the font-path
-	    (if (xlib:list-font-names display font-name)
-		(let ((xfont (xlib:open-font display font-name)))
-		  (s-value font-from-file :display-xfont-plist
-			   (cons display (cons xfont dx-plist)))
-		  xfont)
-		(progn
-		  (format t "WARNING: Font '~A' not on font path!~%"
-			  font-name)
-		  (format t "  ****   Resorting to Default Font!~%")
-		  (x-font-to-internal root-window default-font-from-file))))))))
+	      (let ((font-path (fix-font-path
+			                (g-value font-from-file :font-path)))
+		        (font-name (g-value font-from-file :font-name)))
+	        (when font-path
+	          (let ((xfont-path (mapcar #'remove-null-char
+					                    (xlib:font-path display))))
+                ;; Add the font-path to the font-path, if necessary
+		        (unless (member font-path xfont-path :test #'string=)
+		          (setf (xlib:font-path display)
+			            (cons font-path xfont-path))
+                  ;; Now make sure it's there!
+		          (unless (member font-path (xlib:font-path display)
+				                  :test #'string=)
+		            (format t "WARNING: X did not add ~A to font-path!!~%"
+			                font-path)))))
 
+	        (cond
+              
+              ;; Open the font only if it's on the font-path
+              ((xlib:list-font-names display font-name)
+		       (let ((xfont (xlib:open-font display font-name)))
+		         (s-value font-from-file :display-xfont-plist
+			              (cons display (cons xfont dx-plist)))
+		         xfont))
+
+              ;; Attempt loading default font if that has not been attempted
+              ((not (eq default-font-from-file font-from-file))
+		       (format t "WARNING: Font '~A' not on font path!~%"
+			           font-name)
+		       (format t "  ****   Resorting to Default Font!~%")
+		       (x-font-to-internal root-window default-font-from-file))
+
+              ;; The default font cannot be loaded, now just attempt loading ANY font
+              (t
+               (format t "WARNING: Default font could not be loaded~~%")
+               (format t "   ****   Resorting to loading any available xserver fonts")
+               (let ((xfont (xlib:open-font
+                             display
+                             (first (xlib:list-font-names display "*")))))
+		         (s-value font-from-file :display-xfont-plist
+			              (cons display (cons xfont dx-plist)))
+		         xfont))))))))
 
 
 ;;; Sets the Cut buffer for X.  Note that this does NOT do a select, and
