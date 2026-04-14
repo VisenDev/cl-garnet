@@ -642,69 +642,70 @@ this display."
                         min-width min-height max-width max-height
                         user-specified-position-p user-specified-size-p
                         override-redirect)
+  (declare (ignore visible))
   (when *x11-server-available*
     (let* ((display-info (g-value parent-window :display-info))
-	   (drawable (xlib:create-window
-		      :bit-gravity :north-west
-		      :backing-store :always
-		      :parent (g-value parent-window :drawable)
-		      :x x
-		      :y y
-		      :width width
-		      :height height
-		      :background background
-		      :border-width border-width
-		      :border (xlib:screen-black-pixel (display-info-screen
-							display-info))
-		      :override-redirect override-redirect
-		      :event-mask *exposure-event-mask*
-		      :save-under save-under
-		      :class :input-output)))
+	       (drawable (xlib:create-window
+		              :bit-gravity :north-west
+		              :backing-store :always
+		              :parent (g-value parent-window :drawable)
+		              :x x
+		              :y y
+		              :width width
+		              :height height
+		              :background background
+		              :border-width border-width
+		              :border (xlib:screen-black-pixel (display-info-screen
+							                            display-info))
+		              :override-redirect override-redirect
+		              :event-mask *exposure-event-mask*
+		              :save-under save-under
+		              :class :input-output)))
       (setf (xlib:wm-hints drawable)
-	    (xlib:make-wm-hints))
+	        (xlib:make-wm-hints))
       (setf (xlib:wm-hints-input (xlib:wm-hints drawable)) :on)
       (setf (xlib:wm-hints-initial-state (xlib:wm-hints drawable)) :normal)
       (setf (xlib:wm-normal-hints drawable)
-	    (xlib:make-wm-size-hints
-	     :width-inc 1
-	     :height-inc 1
-	     ;; wm-size-hints-y has been obsolete for several
-	     ;; decades. Apperently, at one time it was used instead
-	     ;; of ConfigureWindow?
-	     ;; :x x
-	     ;; :y y
-	     :min-width min-width
-	     :min-height min-height
-	     :max-width max-width
-	     :max-height max-height
-	     :user-specified-position-p user-specified-position-p
-	     ;; :user-specified-size-p user-specified-size-p
-	     ))
+	        (xlib:make-wm-size-hints
+	         :width-inc 1
+	         :height-inc 1
+	         ;; wm-size-hints-y has been obsolete for several
+	         ;; decades. Apperently, at one time it was used instead
+	         ;; of ConfigureWindow?
+	         ;; :x x
+	         ;; :y y
+	         :min-width min-width
+	         :min-height min-height
+	         :max-width max-width
+	         :max-height max-height
+	         :user-specified-position-p user-specified-position-p
+	         ;; :user-specified-size-p user-specified-size-p
+	         ))
       (setf (xlib:wm-size-hints-user-specified-size-p (xlib:wm-normal-hints drawable))
-	    user-specified-size-p)
+	        user-specified-size-p)
       (xlib:set-wm-properties drawable
-			      ;; :client-machine
-			      ;; (machine-instance)
-			      :resource-name "Opal"
-			      :resource-class :opal
-			      :name title
-			      :icon-name icon-name)
-    ;;; The following allows you to destroy windows by hand using the
-    ;;; window manager.  Unfortunately, this does not work in lispworks, but
-    ;;; causes an error with mysterious message "#\U is not of type integer".
-    ;;;
-    ;;; The same error appeared in clisp before the addition of
-    ;;; :TRANSFORM #'xlib:char->card8. I guess it is related to missing error
-    ;;; error checking in other implementations than clisp and lispworks.
-    ;;; B. Haible 20.9.1993
+			                  ;; :client-machine
+			                  ;; (machine-instance)
+			                  :resource-name "Opal"
+			                  :resource-class :opal
+			                  :name title
+			                  :icon-name icon-name)
+;;; The following allows you to destroy windows by hand using the
+;;; window manager.  Unfortunately, this does not work in lispworks, but
+;;; causes an error with mysterious message "#\U is not of type integer".
+;;;
+;;; The same error appeared in clisp before the addition of
+;;; :TRANSFORM #'xlib:char->card8. I guess it is related to missing error
+;;; error checking in other implementations than clisp and lispworks.
+;;; B. Haible 20.9.1993
       (xlib:change-property drawable
-			    :WM_CLIENT_MACHINE (short-site-name)
-			    :STRING 8)
+			                :WM_CLIENT_MACHINE (short-site-name)
+			                :STRING 8)
       (xlib:change-property drawable :WM_PROTOCOLS
-			    (list (xlib:intern-atom
-				   (display-info-display display-info)
-				   "WM_DELETE_WINDOW"))
-			    :ATOM 32)
+			                (list (xlib:intern-atom
+				                   (display-info-display display-info)
+				                   "WM_DELETE_WINDOW"))
+			                :ATOM 32)
       drawable)))
 
 (defun x-delete-font (root-window font)
@@ -755,7 +756,7 @@ this display."
                                         ; event-case to terminate), which causes
                                         ; loop to terminate
 	 (return)))
-    #+ALLEGRO
+    #+allegro
     (block throw-away
       (xlib:event-case (*default-x-display*
                         :discard-p t :timeout 0)
@@ -1225,15 +1226,15 @@ this display."
 	       :initial-value t)))
 
 (defun lookup-composite-event (event-type-list)
-  (and (> (length event) 1)
+  (and (> (length *composite-events*) 1)
        (dolist (composite-event *composite-events* )
-	 (if (and (= (length event-type-list) (length composite-event))
-		  (reduce (lambda (result item) (and result (eq (car item) (cdr item))))
-			  (mapcar #'cons
-				  event-type-list
-				  composite-event)
-			  :initial-value t))
-	     (return t)))))
+	     (if (and (= (length event-type-list) (length composite-event))
+		          (reduce (lambda (result item) (and result (eq (car item) (cdr item))))
+			              (mapcar #'cons
+				                  event-type-list
+				                  composite-event)
+			              :initial-value t))
+	         (return t)))))
 
 (defun get-event-type (event)
   (car (reverse event)))
@@ -1256,26 +1257,27 @@ this display."
   (setf *my-root-window* root-window)
   (setf  *my-ignore-keys* ignore-keys)
   (apply 'process-x-event
-	 (let* ((building-composit-event nil)
-		(valid-event nil)
-		(composite-event nil))
-	   (declare (ignore building-composit-event))
-	   (declare (ignore valid-event))
-	   (do* ((event (fetch-next-event root-window ignore-keys)
-			(fetch-next-event root-window ignore-keys))
-		 (composite-event (if event
-				      (push (get-event-type event) composite-event)
-				      composite-event)
-				  (if event
-				      (push (get-event-type event) composite-event)
-				      composite-event)))
-		((or (timeout-p composit-event)
-		     (not (any-more-p composite-event)))
-		 (if (valid-event-p composite-event)
-		     (create-garnet-event composite-event)
-		     nil))
-	     (format t "event: ~s!%" event)
-	     (push event composite-event)))))
+	     (let* ((building-composit-event nil)
+		        (valid-event nil)
+		        (composite-event nil))
+	       (declare (ignore building-composit-event))
+	       (declare (ignore valid-event))
+	       (do* ((event (fetch-next-event root-window ignore-keys)
+			            (fetch-next-event root-window ignore-keys))
+		         (composite-event (if event
+				                      (push (get-event-type event) composite-event)
+				                      composite-event)
+				                  (if event
+				                      (push (get-event-type event) composite-event)
+				                      composite-event)))
+		        ((or (timeout-p composite-event)
+		             (not (any-more-p composite-event)))
+		         (if (valid-event-p composite-event)
+                     ;; this function seems to be undefined
+  		             (create-garnet-event composite-event)
+		             nil))
+	         (format t "event: ~s!%" event)
+	         (push event composite-event)))))
 
 (defun fetch-next-event (root-window ignore-keys)
   (let* ((display (the-display root-window))
@@ -2301,13 +2303,14 @@ integer.  We want to specify nice keywords instead of those silly
     (:LEFT
      (let* ((drawable (g-value window :drawable))
             (hints (xlib:wm-normal-hints drawable)))
+       (declare (ignore hints))
        (setf (xlib:drawable-x drawable) value
-	     ;; wm-size-hints-y has been obsolete for several
-	     ;; decades. Apperently, at one time it was used instead
-	     ;; of ConfigureWindow?
+	         ;; wm-size-hints-y has been obsolete for several
+	         ;; decades. Apperently, at one time it was used instead
+	         ;; of ConfigureWindow?
              ;; (xlib:wm-size-hints-x hints) value
              ;; (xlib:wm-normal-hints drawable) hints
-	     ))
+	         ))
      nil)
     (:PARENT
      (let ((left (g-value window :left))
@@ -2349,13 +2352,14 @@ integer.  We want to specify nice keywords instead of those silly
     (:TOP
      (let* ((drawable (g-value window :drawable))
             (hints (xlib:wm-normal-hints drawable)))
+       (declare (ignore hints))
        (setf (xlib:drawable-y drawable) value
-	     ;; wm-size-hints-y has been obsolete for several
-	     ;; decades. Apperently, at one time it was used instead
-	     ;; of ConfigureWindow?
+	         ;; wm-size-hints-y has been obsolete for several
+	         ;; decades. Apperently, at one time it was used instead
+	         ;; of ConfigureWindow?
              ;; (xlib:wm-size-hints-y hints) value
              ;; (xlib:wm-normal-hints drawable) hints
-	     ))
+	         ))
      nil)
     (:VISIBLE
      (let* ((drawable (g-value window :drawable))
