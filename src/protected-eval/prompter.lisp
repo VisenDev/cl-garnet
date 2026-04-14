@@ -150,8 +150,7 @@
 	(opal:update window)))
     (when waiting (inter:interaction-complete (list value but-value)))))
 
-(or (kr:def-kr-type Package () 'Package)
-    t)
+(kr:def-kr-type Package () 'Package)
 
 ;; note: if :parent-window is specified, then the parent window must
 ;; already have been opal:update'd when the instance of ERROR-GADGET

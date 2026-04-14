@@ -525,14 +525,14 @@ an inherited formula."
   "Given simple type ('NULL, 'KEYWORD, etc...), returns the name of
 the lisp predicate to test this ('NULL, 'KEYWORDP, etc....)"
   (let ((p-name (concatenate 'string (symbol-name simple-type) "P"))
-	(-p-name (concatenate 'string (symbol-name simple-type) "-P")))
+	    (-p-name (concatenate 'string (symbol-name simple-type) "-P")))
     (cond ((memberq simple-type '(NULL ATOM)) simple-type)
-	  (T (or (find-symbol p-name 'common-lisp)
-		 (find-symbol -p-name 'common-lisp)
-		 (find-symbol p-name)
-		 (find-symbol -p-name)
-		 (error "Could not find predicate for simple-type ~S~%"
-			simple-type))))))
+	      (T (or (find-symbol p-name 'common-lisp)
+		         (find-symbol -p-name 'common-lisp)
+		         (find-symbol p-name)
+		         (find-symbol -p-name)
+		         (error "Could not find predicate for simple-type ~S~%"
+			            simple-type))))))
 
 (defun make-lambda-body (complex-type)
   (with-types-table-lock-held (types-table)
@@ -577,17 +577,17 @@ the lisp predicate to test this ('NULL, 'KEYWORDP, etc....)"
   (with-types-table-lock-held (types-table)
     (let (code)
       (cond ((consp type)			; complex type
-	     (if (eq (car type) 'SATISFIES)
-		 (let ((fn-name (second type)))
-		   `',fn-name) ;; koz
-		 `(function (lambda (value)
-		    (declare #.*special-kr-optimization*)
-		    ,(make-lambda-body type)))))
-	    ((setq code (gethash (symbol-name type) types-table))
-	     ;; is this a def-kr-type?
-	     (code-to-type-fn code))
-	    (T
-	     `',(find-lisp-predicate type))))))
+	         (if (eq (car type) 'SATISFIES)
+		         (let ((fn-name (second type)))
+		           `',fn-name) ;; koz
+		         `(function (lambda (value)
+		            (declare #.*special-kr-optimization*)
+		            ,(make-lambda-body type)))))
+	        ((setq code (gethash (symbol-name type) types-table))
+	         ;; is this a def-kr-type?
+	         (code-to-type-fn code))
+	        (T
+             `',(find-lisp-predicate type))))))
 
 (declaim (inline copy-extend-array))
 (defun copy-extend-array (oldarray oldlen newlen)
@@ -619,35 +619,35 @@ Always returns the CODE of the resulting type (whether new or not)"
   (with-types-table-lock-held (types-table)
     (let ((code (gethash (or typename type-body) types-table)))
       (if code
-	  ;; redefining same name
-	  (if (equal (code-to-type code) type-body)
-	      ;; redefining same name, same type
+	      ;; redefining same name
+	      (if (equal (code-to-type code) type-body)
+	          ;; redefining same name, same type
+	          (progn
+		        (format t "Ignoring redundant def-kr-type of ~S to ~S~%"
+			            typename type-body)
+		        (return-from add-new-type code))
+	          ;; redefining same name, new type --> replace it!
+	          (format t "def-kr-type redefining ~S from ~S to ~S~%"
+		              typename (code-to-type code) type-body))
+	      ;; defining a new name, establish new code
 	      (progn
-		(format t "Ignoring redundant def-kr-type of ~S to ~S~%"
-			typename type-body)
-		(return-from add-new-type code))
-	      ;; redefining same name, new type --> replace it!
-	      (format t "def-kr-type redefining ~S from ~S to ~S~%"
-		      typename (code-to-type code) type-body))
-	  ;; defining a new name, establish new code
-	  (progn
-	    (setq code (or (gethash type-body types-table)
-			   (get-next-type-code)))
-	    (setf (gethash typename types-table) code)))
+	        (setq code (or (gethash type-body types-table)
+			               (get-next-type-code)))
+	        (setf (gethash typename types-table) code)))
       (unless (gethash type-body types-table)
-	(setf (gethash type-body types-table) code))
+	    (setf (gethash type-body types-table) code))
       (setf (svref types-array code)
-	    (if typename
-		(if (stringp typename)
-		    (intern typename (find-package "KR"))
-		    typename)
-		type-body))
+	        (if typename
+		        (if (stringp typename)
+		            (intern typename (find-package "KR"))
+		            typename)
+		        type-body))
       (setf (svref type-docs-array code) (or type-doc NIL))
       (setf (svref type-fns-array  code)
-	    (if (and (symbolp type-fn) ;; koz
-		     (fboundp type-fn))
-		(symbol-function type-fn)
-		type-fn))
+	        (if (and (symbolp type-fn) ;; koz
+		             (fboundp type-fn))
+		        (symbol-function type-fn)
+		        type-fn))
       code)))
 
 (defun kr-type-error (type)
@@ -2672,13 +2672,13 @@ Example:
  (OR NULL (IS-A-P OPAL:BITMAP))
 "
   (let* ((name (if (symbolp type-descriptor) (symbol-name type-descriptor)))
-	 (code (gethash name kr::types-table)))
+	 (code (gethash name *types-table*)))
     (when name
       (maphash #'(lambda (key value)
 		   (when (and (eq value code)
 			    (not (stringp key)))
 		       (return-from get-type-definition key)))
-	       kr::types-table))))
+	       *types-table*))))
 
 
 
