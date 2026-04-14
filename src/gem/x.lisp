@@ -1697,7 +1697,7 @@ this display."
 
               ;; The default font cannot be loaded, now just attempt loading ANY font
               (t
-               (format t "WARNING: Default font could not be loaded~~%")
+               (format t "WARNING: Default font could not be loaded~%")
                (format t "   ****   Resorting to loading any available xserver font")
                (xlib:open-font
                 display

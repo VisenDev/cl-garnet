@@ -645,17 +645,17 @@ You can also provide a documentation string as the last parameter, as in:
      (def-kr-type my-named-type () '(or keyword null) \"Sample doc string\")"
 
   (cond ((listp typename-or-type)
-	   (unless (eq (car typename-or-type) 'QUOTE)
-	     (error "Illegal typename to def-kr-type: ~S" typename-or-type))
-	   (unless (and (null args) (null body) (null type-doc))
-	     (error "Illegal specification: (DEF-KR-TYPE ~S ~S ~S ~S)"
-			typename-or-type args body type-doc))
-	   (setq body typename-or-type)
-	   (setq typename-or-type NIL))
+	     (unless (eq (car typename-or-type) 'QUOTE)
+	       (error "Illegal typename to def-kr-type: ~S" typename-or-type))
+	     (unless (and (null args) (null body) (null type-doc))
+	       (error "Illegal specification: (DEF-KR-TYPE ~S ~S ~S ~S)"
+			      typename-or-type args body type-doc))
+	     (setq body typename-or-type)
+	     (setq typename-or-type NIL))
         (args
-	   (error "DEF-KR-TYPE only works with NULL args, not ~S~%" args))
+	     (error "DEF-KR-TYPE only works with NULL args, not ~S~%" args))
         (T
-	   (setq typename-or-type (symbol-name typename-or-type))))
+	     (setq typename-or-type (symbol-name typename-or-type))))
   (setq body (eval body))
   `(add-new-type ,typename-or-type ',body ,(type-to-fn body) ,type-doc))
 
