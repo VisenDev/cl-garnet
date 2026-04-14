@@ -149,8 +149,13 @@
 
 (defun fixnump (object) (typep object 'fixnum))
 
+#+sbcl
 (def-kr-type fixnum ()
   '(satisfies sb-int:fixnump)
+  "Potential efficiency hack.")
+#-sbcl
+(def-kr-type fixnum ()
+  'fixnum
   "Potential efficiency hack.")
 
 ;;;; Unnamed types used in Opal, Interactors, etc.
